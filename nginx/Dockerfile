@@ -2,7 +2,9 @@ FROM nginx:alpine
 
 LABEL maintainer="Mahmoud Zalt <mahmoud@zalt.me>"
 
-COPY nginx.conf /etc/nginx/
+ARG BUILD_CONTEXT_REL_PATH=./
+
+COPY ${BUILD_CONTEXT_REL_PATH}nginx.conf /etc/nginx/
 
 # If you're in China, or you need to change sources, will be set CHANGE_SOURCE to true in .env.
 
@@ -31,13 +33,17 @@ ARG PHP_UPSTREAM_PORT=9000
 RUN touch /var/log/messages
 
 # Copy 'logrotate' config file
-COPY logrotate/nginx /etc/logrotate.d/
+COPY ${BUILD_CONTEXT_REL_PATH}logrotate/nginx /etc/logrotate.d/
 
 # Set upstream conf and remove the default conf
 RUN echo "upstream php-upstream { server ${PHP_UPSTREAM_CONTAINER}:${PHP_UPSTREAM_PORT}; }" > /etc/nginx/conf.d/upstream.conf \
     && rm /etc/nginx/conf.d/default.conf
 
-ADD ./startup.sh /opt/startup.sh
+COPY ./public /var/www/public
+COPY ./storage /var/www/storage
+RUN chown -R www-data:www-data /var/www/storage/
+
+ADD ${BUILD_CONTEXT_REL_PATH}startup.sh /opt/startup.sh
 RUN sed -i 's/\r//g' /opt/startup.sh
 CMD ["/bin/bash", "/opt/startup.sh"]
 

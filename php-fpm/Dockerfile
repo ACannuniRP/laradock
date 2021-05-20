@@ -20,6 +20,8 @@ LABEL maintainer="Mahmoud Zalt <mahmoud@zalt.me>"
 
 ARG LARADOCK_PHP_VERSION
 
+ARG BUILD_CONTEXT_REL_PATH=./
+
 # Set Environment Variables
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -236,7 +238,7 @@ RUN if [ ${INSTALL_XDEBUG} = true ]; then \
 ;fi
 
 # Copy xdebug configuration for remote debugging
-COPY ./xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+COPY ${BUILD_CONTEXT_REL_PATH}xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 
 RUN if [ $(php -r "echo PHP_MAJOR_VERSION;") = "8" ]; then \
   sed -i "s/xdebug.remote_host=/xdebug.client_host=/" /usr/local/etc/php/conf.d/xdebug.ini && \
@@ -398,7 +400,7 @@ RUN set -eux; \
 #   https://github.com/tideways/php-xhprof-extension
 # fi
 
-# COPY ./xhprof.ini /usr/local/etc/php/conf.d
+# COPY ${BUILD_CONTEXT_REL_PATH}xhprof.ini /usr/local/etc/php/conf.d
 
 # RUN if [ ${INSTALL_XHPROF} = false ]; then \
 #     rm /usr/local/etc/php/conf.d/xhprof.ini \
@@ -642,7 +644,7 @@ RUN if [ ${INSTALL_OPCACHE} = true ]; then \
 ;fi
 
 # Copy opcache configration
-COPY ./opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY ${BUILD_CONTEXT_REL_PATH}opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 ###########################################################################
 # Mysqli Modifications:
@@ -824,7 +826,7 @@ ARG LARADOCK_PHALCON_VERSION
 ENV LARADOCK_PHALCON_VERSION ${LARADOCK_PHALCON_VERSION}
 
 # Copy phalcon configration
-COPY ./phalcon.ini /usr/local/etc/php/conf.d/phalcon.ini.disable
+COPY ${BUILD_CONTEXT_REL_PATH}phalcon.ini /usr/local/etc/php/conf.d/phalcon.ini.disable
 
 RUN if [ $INSTALL_PHALCON = true ]; then \
     apt-get install -yqq unzip libpcre3-dev gcc make re2c git automake autoconf\
@@ -1162,8 +1164,8 @@ RUN set -xe; php -v | head -n 1 | grep -q "PHP ${LARADOCK_PHP_VERSION}."
 #--------------------------------------------------------------------------
 #
 
-COPY ./laravel.ini /usr/local/etc/php/conf.d
-COPY ./xlaravel.pool.conf /usr/local/etc/php-fpm.d/
+COPY ${BUILD_CONTEXT_REL_PATH}laravel.ini /usr/local/etc/php/conf.d
+COPY ${BUILD_CONTEXT_REL_PATH}xlaravel.pool.conf /usr/local/etc/php-fpm.d/
 
 USER root
 
@@ -1190,6 +1192,9 @@ RUN if [ ${INSTALL_FAKETIME} = true ]; then \
 # Configure locale.
 ARG LOCALE=POSIX
 ENV LC_ALL ${LOCALE}
+
+COPY ./ /var/www
+RUN chown -R www-data:www-data /var/www/storage/
 
 WORKDIR /var/www
 

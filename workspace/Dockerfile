@@ -20,6 +20,8 @@ LABEL maintainer="Mahmoud Zalt <mahmoud@zalt.me>"
 
 ARG LARADOCK_PHP_VERSION
 
+ARG BUILD_CONTEXT_REL_PATH=./
+
 # Set Environment Variables
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -107,8 +109,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 USER root
 
-COPY ./aliases.sh /root/aliases.sh
-COPY ./aliases.sh /home/laradock/aliases.sh
+COPY ${BUILD_CONTEXT_REL_PATH}aliases.sh /root/aliases.sh
+COPY ${BUILD_CONTEXT_REL_PATH}aliases.sh /home/laradock/aliases.sh
 
 RUN sed -i 's/\r//' /root/aliases.sh && \
     sed -i 's/\r//' /home/laradock/aliases.sh && \
@@ -132,10 +134,10 @@ RUN echo "" >> ~/.bashrc && \
 USER root
 
 # Add the composer.json
-COPY ./composer.json /home/laradock/.composer/composer.json
+COPY ${BUILD_CONTEXT_REL_PATH}composer.json /home/laradock/.composer/composer.json
 
 # Add the auth.json for magento 2 credentials
-COPY ./auth.json /home/laradock/.composer/auth.json
+COPY ${BUILD_CONTEXT_REL_PATH}auth.json /home/laradock/.composer/auth.json
 
 # Make sure that ~/.composer belongs to laradock
 RUN chown -R laradock:laradock /home/laradock/.composer
@@ -196,7 +198,7 @@ RUN echo "" >> ~/.bashrc && \
 
 USER root
 
-COPY ./crontab /etc/cron.d
+COPY ${BUILD_CONTEXT_REL_PATH}crontab /etc/cron.d
 
 RUN chmod -R 644 /etc/cron.d
 
@@ -358,7 +360,7 @@ RUN if [ ${INSTALL_XDEBUG} = true ]; then \
 ;fi
 
 # ADD for REMOTE debugging
-COPY ./xdebug.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/xdebug.ini
+COPY ${BUILD_CONTEXT_REL_PATH}xdebug.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/xdebug.ini
 
 RUN if [ $(php -r "echo PHP_MAJOR_VERSION;") = "8" ]; then \
   sed -i "s/xdebug.remote_host=/xdebug.client_host=/" /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/xdebug.ini && \
@@ -430,8 +432,8 @@ RUN if [ ${INSTALL_XDEBUG} = false -a ${INSTALL_BLACKFIRE} = true ]; then \
 
 ARG INSTALL_WORKSPACE_SSH=false
 
-COPY insecure_id_rsa /tmp/id_rsa
-COPY insecure_id_rsa.pub /tmp/id_rsa.pub
+COPY ${BUILD_CONTEXT_REL_PATH}insecure_id_rsa /tmp/id_rsa
+COPY ${BUILD_CONTEXT_REL_PATH}insecure_id_rsa.pub /tmp/id_rsa.pub
 
 RUN if [ ${INSTALL_WORKSPACE_SSH} = true ]; then \
     rm -f /etc/service/sshd/down && \
@@ -1075,7 +1077,7 @@ RUN set -eux; \
 
 USER root
 
-COPY mc/config.json /root/.mc/config.json
+COPY ${BUILD_CONTEXT_REL_PATH}mc/config.json /root/.mc/config.json
 
 ARG INSTALL_MC=false
 
@@ -1456,7 +1458,7 @@ RUN if [ ${INSTALL_GNU_PARALLEL} = true ]; then \
 
 ARG INSTALL_GIT_PROMPT=false
 
-COPY git-prompt.sh /tmp/git-prompt
+COPY ${BUILD_CONTEXT_REL_PATH}git-prompt.sh /tmp/git-prompt
 
 RUN if [ ${INSTALL_GIT_PROMPT} = true ]; then \
     git clone https://github.com/magicmonty/bash-git-prompt.git /root/.bash-git-prompt --depth=1 && \
@@ -1645,6 +1647,9 @@ RUN set -eux; \
 #
 
 USER root
+
+COPY ./ /var/www
+RUN chown -R www-data:www-data /var/www/storage/
 
 # Clean up
 RUN apt-get clean && \

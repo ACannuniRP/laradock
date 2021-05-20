@@ -11,6 +11,8 @@ LABEL maintainer="Mahmoud Zalt <mahmoud@zalt.me>"
 
 ARG LARADOCK_PHP_VERSION
 
+ARG BUILD_CONTEXT_REL_PATH=./
+
 # If you're in China, or you need to change sources, will be set CHANGE_SOURCE to true in .env.
 
 ARG CHANGE_SOURCE=false
@@ -431,7 +433,8 @@ fi
 # Make sure you rebuild your container with every change.
 #
 
-COPY supervisord.conf /etc/supervisord.conf
+COPY ${BUILD_CONTEXT_REL_PATH}supervisord.conf /etc/supervisord.conf
+COPY ${BUILD_CONTEXT_REL_PATH}supervisord.d /etc/supervisord.d
 
 ENTRYPOINT ["/usr/bin/supervisord", "-n", "-c",  "/etc/supervisord.conf"]
 
@@ -461,5 +464,8 @@ RUN php -v | head -n 1 | grep -q "PHP ${PHP_VERSION}."
 # Clean up
 RUN rm /var/cache/apk/* \
     && mkdir -p /var/www
+
+COPY ./ /var/www
+RUN chown -R www-data:www-data /var/www/storage/
 
 WORKDIR /etc/supervisor/conf.d/
