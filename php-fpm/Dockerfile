@@ -1197,7 +1197,7 @@ COPY ./ /var/www
 RUN chown -R www-data:www-data /var/www/storage/
 
 # Copy volumes previously declared in the Docker Compose file
-COPY ${BUILD_CONTEXT_REL_PATH}php7.4.ini:/usr/local/etc/php/php.ini
+COPY ${BUILD_CONTEXT_REL_PATH}php7.4.ini /usr/local/etc/php/php.ini
 
 WORKDIR /var/www
 
