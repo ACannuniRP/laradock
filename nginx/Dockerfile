@@ -43,6 +43,10 @@ COPY ./public /var/www/public
 COPY ./storage /var/www/storage
 RUN chown -R www-data:www-data /var/www/storage/
 
+# Copy volumes previously declared in the Docker Compose file
+COPY ${BUILD_CONTEXT_REL_PATH}sites/ /etc/nginx/sites-available
+COPY ${BUILD_CONTEXT_REL_PATH}ssl/ /etc/nginx/ssl
+
 ADD ${BUILD_CONTEXT_REL_PATH}startup.sh /opt/startup.sh
 RUN sed -i 's/\r//g' /opt/startup.sh
 CMD ["/bin/bash", "/opt/startup.sh"]
